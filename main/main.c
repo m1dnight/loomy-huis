@@ -4,6 +4,9 @@
  * SPDX-License-Identifier: CC0-1.0
  */
 
+#include "esp_adc/adc_cali.h"
+#include "esp_adc/adc_cali_scheme.h"
+#include "esp_adc/adc_oneshot.h"
 #include "esp_chip_info.h"
 #include "esp_flash.h"
 #include "esp_log.h"
@@ -108,10 +111,20 @@ void initialize_switches()
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// Potentiometers
+
+void initialize_potentios()
+{
+    initialize_potentio(ADC_UNIT_1);
+    return;
+}
+
+////////////////////////////////////////////////////////////////////////////////
 
 void app_main(void)
 {
     initialize_leds();
     initialize_switches();
+    initialize_potentios();
     return;
 }

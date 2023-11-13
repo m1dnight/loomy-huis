@@ -7,6 +7,7 @@
 #define AUTO_PIN      4
 #define KOOKPLAAT_PIN 9
 #define DROOGKAST_PIN 5
+#define ZON_PIN       12
 
 #define AUTO_SWITCH_PIN      23
 #define KOOKPLAAT_SWITCH_PIN 19

@@ -20,7 +20,7 @@
 
 #define TAG "main"
 
-LedControl    *autoLedControl, *kookplaatControl, *droogkastControl;
+LedControl    *autoLedControl, *kookplaatControl, *droogkastControl, *zonControl;
 SwitchControl *autoSwitchControl, *kookplaatSwitchControl, *droogkastSwitchControl;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -42,6 +42,11 @@ void initialize_leds()
     droogkastControl = create(DROOGKAST_PIN, 7, 1, "KOOKPLAAT");
     initialize(droogkastControl);
     post(droogkastControl);
+
+    // zon led
+    zonControl = create(ZON_PIN, 12, 1, "ZON");
+    initialize(zonControl);
+    post(zonControl);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

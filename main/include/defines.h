@@ -4,10 +4,10 @@
 
 #define RMT_LED_STRIP_RESOLUTION_HZ 10000000
 
-#define AUTO_PIN      4
-#define KOOKPLAAT_PIN 9
-#define DROOGKAST_PIN 5
-#define ZON_PIN       12
+#define LED_AUTO_PIN      4
+#define LED_KOOKPLAAT_PIN 9
+#define LED_DROOGKAST_PIN 5
+#define LED_ZON_PIN       12
 
 //------------------------------------------------------------------------------
 // led driver
@@ -20,3 +20,5 @@
 //------------------------------------------------------------------------------
 // potentiometers
 //------------------------------------------------------------------------------
+
+#define MAX_VOLTAGE 4100

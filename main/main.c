@@ -19,6 +19,7 @@
 // our code
 #include "defines.h"
 #include "led_control.h"
+#include "potentio.h"
 #include "switch.h"
 
 #define TAG "main"
@@ -32,24 +33,38 @@ SwitchControl *autoSwitchControl, *kookplaatSwitchControl, *droogkastSwitchContr
 void initialize_leds()
 {
     // auto led
-    autoLedControl = create(AUTO_PIN, 12, 1, "AUTO");
+    autoLedControl = create(LED_AUTO_PIN, 12, 1, "AUTO");
     initialize(autoLedControl);
-    post(autoLedControl);
+    // post(autoLedControl);
 
     // kookplaat led
-    kookplaatControl = create(KOOKPLAAT_PIN, 8, 0, "KOOKPLAAT");
+    kookplaatControl = create(LED_KOOKPLAAT_PIN, 8, 0, "KOOKPLAAT");
     initialize(kookplaatControl);
-    post(kookplaatControl);
+    // post(kookplaatControl);
 
     // droogkast led
-    droogkastControl = create(DROOGKAST_PIN, 7, 1, "KOOKPLAAT");
+    droogkastControl = create(LED_DROOGKAST_PIN, 7, 1, "KOOKPLAAT");
     initialize(droogkastControl);
-    post(droogkastControl);
+    // post(droogkastControl);
 
     // zon led
-    zonControl = create(ZON_PIN, 12, 1, "ZON");
+    zonControl = create(LED_ZON_PIN, 12, 1, "ZON");
     initialize(zonControl);
-    post(zonControl);
+    // post(zonControl);
+}
+
+void leds_on()
+{
+    uint8_t value = 128;
+    uint8_t red = value;
+    uint8_t green = value;
+    uint8_t blue = value;
+    uint8_t white = value;
+    change_color(autoLedControl, red, green, blue, white);
+    change_color(kookplaatControl, red, green, blue, white);
+    change_color(droogkastControl, red, green, blue, white);
+    change_color(zonControl, red, green, blue, white);
+    return;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -113,9 +128,19 @@ void initialize_switches()
 ////////////////////////////////////////////////////////////////////////////////
 // Potentiometers
 
+void zon_value_change(int value)
+{
+    ESP_LOGI(TAG, "zon value changed to %d", value);
+    int yellow = (int)(value * 2.5);
+    change_color(zonControl, yellow, yellow, 0, yellow);
+    return;
+}
+
 void initialize_potentios()
 {
-    initialize_potentio(ADC_UNIT_1);
+    void (*handler)(int);
+    handler = &zon_value_change;
+    initialize_potentio(ADC_UNIT_1, ADC_BITWIDTH_DEFAULT, ADC_ATTEN_DB_11, ADC_CHANNEL_0, handler);
     return;
 }
 
@@ -124,7 +149,11 @@ void initialize_potentios()
 void app_main(void)
 {
     initialize_leds();
-    initialize_switches();
     initialize_potentios();
+    initialize_switches();
+    while (1) {
+        vTaskDelay(pdMS_TO_TICKS(100));
+        leds_on();
+    }
     return;
 }

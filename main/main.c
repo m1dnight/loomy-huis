@@ -138,7 +138,7 @@ void initialize_switches()
 
 void zon_value_change(int value)
 {
-    ESP_LOGI(TAG, "zon value changed to %d", value);
+    // ESP_LOGI(TAG, "zon value changed to %d", value);
     int yellow = (int)(value * 2.5);
     change_color(zonControl, yellow, yellow, 0, yellow);
     set_sun_percentage(value);
@@ -157,13 +157,10 @@ void initialize_potentios()
 
 void app_main(void)
 {
-    // setup
-
-    initialize_leds();
-    // initialize_potentios();
-    initialize_switches();
-
     initialize_consumption();
+    initialize_leds();
+    initialize_potentios();
+    initialize_switches();
 
     return;
 }

@@ -63,6 +63,27 @@ int get_sun_production()
 ////////////////////////////////////////////////////////////////////////////////
 // Appliances
 
+int index_of_appliance(enum Appliance appliance)
+{
+    for (int i = 0; i < (sizeof(consumptionState.appliances) / sizeof(enum Appliance)); i++) {
+        if (consumptionState.appliances[i] == appliance) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+void add_appliance(enum Appliance appliance)
+{
+    // add the appliance in the first empty slot
+    for (int i = 0; i < (sizeof(consumptionState.appliances) / sizeof(enum Appliance)); i++) {
+        if (consumptionState.appliances[i] == NoAppliance) {
+            consumptionState.appliances[i] = appliance;
+            return;
+        }
+    }
+}
+
 void turn_off(enum Appliance appliance)
 {
     lock_state("turn off");
@@ -77,21 +98,12 @@ void turn_off(enum Appliance appliance)
 void turn_on(enum Appliance appliance)
 {
     lock_state("turn on");
-    // if the device is present, ignore.
-    for (int i = 0; i < (sizeof(consumptionState.appliances) / sizeof(enum Appliance)); i++) {
-        if (consumptionState.appliances[i] == appliance) {
-            goto unlock;
-        }
-    }
-    // add the appliance in the first empty slot
-    for (int i = 0; i < (sizeof(consumptionState.appliances) / sizeof(enum Appliance)); i++) {
-        if (consumptionState.appliances[i] == NoAppliance) {
-            consumptionState.appliances[i] = appliance;
-            goto unlock;
-        }
+    int appliance_index = index_of_appliance(appliance);
+
+    if (appliance_index < 0) {
+        add_appliance(appliance);
     }
 
-unlock:
     unlock_state("turn on");
 }
 
@@ -99,11 +111,13 @@ int appliance_consumption(enum Appliance appliance)
 {
     switch (appliance) {
     case Car:
-        return 1;
+        return 11000;
     case Dishwasher:
-        return 2;
+        return 1400;
     case Oven:
-        return 4;
+        return 3500;
+    case Dryer:
+        return 3500;
     default:
         return 0;
     }
@@ -112,17 +126,18 @@ int appliance_consumption(enum Appliance appliance)
 int total_consumption()
 {
     lock_state("total consumption");
-    int total = 0;
-    int count = (sizeof(consumptionState.appliances) / sizeof(enum Appliance));
-
-    for (int i = 0; i < count; i++) {
+    // compute the total consumption
+    int total_consumption = 0;
+    for (int i = 0; i < (sizeof(consumptionState.appliances) / sizeof(enum Appliance)); i++) {
         int appliance = appliance_consumption(consumptionState.appliances[i]);
-
-        total = total + appliance;
+        total_consumption += appliance;
     }
 
+    // compute the total production
+    int total_production = get_sun_production();
+
     unlock_state("total consumption");
-    return total;
+    return total_consumption - total_production;
 }
 
 void print_appliance_name(enum Appliance appliace)
@@ -166,10 +181,10 @@ void vConsumptionGenerator(void *params)
 {
 
     while (true) {
-        vTaskDelay(pdMS_TO_TICKS(1000));
+        vTaskDelay(pdMS_TO_TICKS(500));
         int consumption = total_consumption();
         ESP_LOGI(TAG, "current consumption: %d", consumption);
-        print_state();
+        // print_state();
     }
 
     vTaskDelete(NULL);

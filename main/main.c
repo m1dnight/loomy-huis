@@ -10,6 +10,7 @@
 #include "esp_chip_info.h"
 #include "esp_flash.h"
 #include "esp_log.h"
+#include "esp_random.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "sdkconfig.h"
@@ -17,6 +18,7 @@
 #include <stdio.h>
 
 // our code
+#include "consumption.h"
 #include "defines.h"
 #include "led_control.h"
 #include "potentio.h"
@@ -75,9 +77,11 @@ void auto_switch_toggle(int state)
     ESP_LOGI(TAG, "auto switch toggled to %d", state);
     if (state) {
         change_color(autoLedControl, 0, 255, 0, 0);
+        turn_on(Car);
     }
     else {
         change_color(autoLedControl, 0, 0, 0, 0);
+        turn_off(Car);
     }
     return;
 }
@@ -87,9 +91,11 @@ void kookplaat_switch_toggle(int state)
     ESP_LOGI(TAG, "kookplaat switch toggled to %d", state);
     if (state) {
         change_color(kookplaatControl, 0, 255, 0, 0);
+        turn_on(Oven);
     }
     else {
         change_color(kookplaatControl, 0, 0, 0, 0);
+        turn_off(Oven);
     }
     return;
 }
@@ -99,9 +105,11 @@ void droogkast_switch_toggle(int state)
     ESP_LOGI(TAG, "droogkast switch toggled to %d", state);
     if (state) {
         change_color(droogkastControl, 0, 255, 0, 0);
+        turn_on(Dryer);
     }
     else {
         change_color(droogkastControl, 0, 0, 0, 0);
+        turn_off(Dryer);
     }
     return;
 }
@@ -133,6 +141,7 @@ void zon_value_change(int value)
     ESP_LOGI(TAG, "zon value changed to %d", value);
     int yellow = (int)(value * 2.5);
     change_color(zonControl, yellow, yellow, 0, yellow);
+    set_sun_percentage(value);
     return;
 }
 
@@ -148,12 +157,13 @@ void initialize_potentios()
 
 void app_main(void)
 {
+    // setup
+
     initialize_leds();
-    initialize_potentios();
+    // initialize_potentios();
     initialize_switches();
-    while (1) {
-        vTaskDelay(pdMS_TO_TICKS(100));
-        leds_on();
-    }
+
+    initialize_consumption();
+
     return;
 }

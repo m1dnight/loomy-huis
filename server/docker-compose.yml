@@ -1,0 +1,24 @@
+version: "3.1"
+
+x-logging: &default-logging
+  options:
+    max-size: "12m"
+    max-file: "5"
+  driver: json-file
+
+x-logging-loki: &loki-logging
+  options:
+    loki-url: "https://429373:eyJrIjoiMWIzMGQ4YTU0MjYxMGRiYzU3YTVhOWJjOGVkZjM4NDljYmZkMDVlNSIsIm4iOiJMb2tpIExvZ3MiLCJpZCI6ODE4MDY1fQ==@logs-prod-eu-west-0.grafana.net/loki/api/v1/push"
+  driver: loki
+services:
+  mqtt:
+    logging: *default-logging
+    image: eclipse-mosquitto:2.0-openssl
+    restart: unless-stopped
+    volumes:
+      - ./.volumes/mqtt/acl.conf:/mosquitto/config/acl.conf
+      - ./.volumes/mqtt/mosquitto.conf:/mosquitto/config/mosquitto.conf
+      - ./.volumes/mqtt/certs:/mosquitto/certs
+    ports:
+      - 8883:8883
+      - 1883:1883

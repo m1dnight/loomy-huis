@@ -16,13 +16,17 @@
 #include "sdkconfig.h"
 #include <inttypes.h>
 #include <stdio.h>
+#include <string.h>
 
 // our code
 #include "consumption.h"
 #include "defines.h"
 #include "led_control.h"
+#include "mqtt.h"
+#include "ntp.h"
 #include "potentio.h"
 #include "switch.h"
+#include "wifi.h"
 
 #define TAG "main"
 
@@ -40,7 +44,7 @@ void initialize_leds()
     // post(autoLedControl);
 
     // kookplaat led
-    kookplaatControl = create(LED_KOOKPLAAT_PIN, 8, 0, "KOOKPLAAT");
+    kookplaatControl = create(LED_KOOKPLAAT_PIN, 7, 1, "KOOKPLAAT");
     initialize(kookplaatControl);
     // post(kookplaatControl);
 
@@ -76,7 +80,7 @@ void auto_switch_toggle(int state)
 {
     ESP_LOGI(TAG, "auto switch toggled to %d", state);
     if (state) {
-        change_color(autoLedControl, 0, 255, 0, 0);
+        change_color(autoLedControl, 0, 255, 255, 255);
         turn_on(Car);
     }
     else {
@@ -90,7 +94,7 @@ void kookplaat_switch_toggle(int state)
 {
     ESP_LOGI(TAG, "kookplaat switch toggled to %d", state);
     if (state) {
-        change_color(kookplaatControl, 0, 255, 0, 0);
+        change_color(kookplaatControl, 0, 255, 255, 255);
         turn_on(Oven);
     }
     else {
@@ -104,7 +108,7 @@ void droogkast_switch_toggle(int state)
 {
     ESP_LOGI(TAG, "droogkast switch toggled to %d", state);
     if (state) {
-        change_color(droogkastControl, 0, 255, 0, 0);
+        change_color(droogkastControl, 0, 255, 255, 255);
         turn_on(Dryer);
     }
     else {
@@ -157,6 +161,10 @@ void initialize_potentios()
 
 void app_main(void)
 {
+    initialize_wifi();
+    initialize_mqtt();
+    initialize_sntp();
+
     initialize_consumption();
     initialize_leds();
     initialize_potentios();

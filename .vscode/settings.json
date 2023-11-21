@@ -18,6 +18,8 @@
         "*.tcc": "cpp",
         "string_view": "cpp",
         "functional": "cpp",
-        "esp_flash.h": "c"
+        "esp_flash.h": "c",
+        "event_groups.h": "c",
+        "esp_system.h": "c"
     }
 }

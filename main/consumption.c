@@ -3,14 +3,17 @@
 #include "esp_adc/adc_cali_scheme.h"
 #include "esp_adc/adc_oneshot.h"
 #include "esp_log.h"
+#include "esp_random.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/queue.h"
 #include "freertos/semphr.h"
 #include "freertos/task.h"
 #include <string.h>
+#include <time.h>
 
 // own code
 #include "consumption.h"
+#include "mqtt.h"
 
 QueueHandle_t     consumptionQueue;
 ConsumptionState  consumptionState;
@@ -177,6 +180,41 @@ void print_state()
 ////////////////////////////////////////////////////////////////////////////////
 // generator task
 
+double random_factor(double min, double max)
+{
+    uint32_t random = esp_random();
+    return (double)random / (double)(UINT32_MAX)*max + min;
+}
+
+void generate_message(char *message, int total_consumption)
+{
+    // el:13752.825000so:14184.295000in:0.000000co:0.397000ts:231119154214Wgs:2582.466000mpt:231114123000Wmp:3.668000ps:
+    // build the timestamp
+    char   timestring[64];
+    time_t now = 0;
+    time(&now);
+    struct tm *timeinfo = localtime(&now);
+    strftime(timestring, sizeof(timestring), "%y%m%d%H%M%SW", timeinfo);
+
+    // compute actual consumption values
+    double consumption = 0.0;
+    double injection = 0.0;
+
+    if (total_consumption > 0) {
+        consumption = total_consumption * 0.001+ random_factor(0.0, 0.01);
+    }
+    else {
+        injection = total_consumption * -0.001 + random_factor(0.0, 0.01);
+    }
+
+    // build the message
+
+    sprintf(message, "el:%sso:%sin:%fco:%fts:%sgs:%smpt:%smp:%sps:", "13752.825000", "14184.295000", injection, consumption, timestring, "2582.466000",
+            "231114123000W", "3.668000");
+
+    ESP_LOGI(TAG, "message: %s", message);
+}
+
 void vConsumptionGenerator(void *params)
 {
 
@@ -184,6 +222,11 @@ void vConsumptionGenerator(void *params)
         vTaskDelay(pdMS_TO_TICKS(500));
         int consumption = total_consumption();
         ESP_LOGI(TAG, "current consumption: %d", consumption);
+
+        char message[128];
+
+        generate_message(message, consumption);
+        publish(message);
         // print_state();
     }
 
@@ -215,7 +258,7 @@ void initialize_consumption(void)
 
     init_state();
 
-    xTaskCreate(&vConsumptionGenerator, "vConsumptionGenerator", 2048, NULL, 5, NULL);
+    xTaskCreate(&vConsumptionGenerator, "vConsumptionGenerator", 4096, NULL, 5, NULL);
 
     return;
 }
